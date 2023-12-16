@@ -1,212 +1,155 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:restaurant_app/common/styles.dart';
 
-import 'package:restaurant_app/data/model/restaurant.dart';
-import 'package:restaurant_app/widgets/favorite_button.dart';
+import 'package:restaurant_app/data/api/api_service.dart';
+import 'package:restaurant_app/data/enum/result_state.dart';
+import 'package:restaurant_app/data/model/restaurant_list_model.dart';
+import 'package:restaurant_app/provider/restaurant_detail_provider.dart';
+import 'package:restaurant_app/widgets/detail_restaurant.dart';
+import 'package:restaurant_app/widgets/message_widget.dart';
+import 'package:restaurant_app/widgets/review_widget.dart';
 
-class DetailPage extends StatelessWidget {
+class DetailPage extends StatefulWidget {
   const DetailPage({
     Key? key,
-    required this.restaurants,
+    required this.restaurant,
   }) : super(key: key);
 
   static String routeName = '/detail_page';
-  final Restaurant restaurants;
+  final Restaurant restaurant;
+
+  @override
+  State<DetailPage> createState() => _DetailPageState();
+}
+
+class _DetailPageState extends State<DetailPage>
+    with SingleTickerProviderStateMixin {
+  late TabController tabController;
+  @override
+  void initState() {
+    // TODO: implement initState
+    tabController = TabController(length: 2, vsync: this);
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: primaryColor,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Stack(
+    return ChangeNotifierProvider<RestaurantDetailProvider>(
+      create: (context) => RestaurantDetailProvider(
+        apiService: ApiService(),
+        restaurantId: widget.restaurant.id,
+      ),
+      child: Scaffold(
+        backgroundColor: primaryColor,
+        body: SingleChildScrollView(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 1.5,
+            width: double.infinity,
+            child: Column(
               children: [
-                Image.network(restaurants.pictureId),
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.grey,
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: IconButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            icon: const Icon(
-                              Icons.arrow_back,
-                              color: Colors.black,
-                              size: 25,
-                            ),
-                          ),
-                        ),
-                        const FavButton(),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          restaurants.name,
-                          style: const TextStyle(
-                            fontSize: 32,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      Row(
+                Stack(
+                  children: [
+                    Image.network(
+                        'https://restaurant-api.dicoding.dev/images/large/${widget.restaurant.pictureId}'),
+                    Container(
+                      margin: const EdgeInsets.only(top: 24),
+                      padding: const EdgeInsets.all(4.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(
-                            Icons.star,
-                            color: Colors.orange,
-                            size: 28,
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                                color: secondaryColor,
+                                borderRadius: BorderRadius.circular(25)),
+                            child: IconButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                icon: const Icon(
+                                  Icons.arrow_back,
+                                  color: Colors.black,
+                                  size: 30,
+                                )),
                           ),
-                          const SizedBox(
-                            width: 4,
-                          ),
-                          Text(
-                            '${restaurants.rating}',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              color: Colors.white,
-                            ),
-                          )
+                          IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.bookmark_border,
+                                size: 30,
+                              ))
                         ],
                       ),
-                    ],
-                  ),
-                  Text(
-                    restaurants.city,
-                    style: const TextStyle(fontSize: 24, color: Colors.white),
-                  ),
-                  const Divider(),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  const Text(
-                    'Description',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 20,
-                      color: Colors.white,
+                    )
+                  ],
+                ),
+                TabBar(
+                  controller: tabController,
+                  dividerColor: Colors.transparent,
+                  tabs: const [
+                    Tab(
+                      text: 'ABOUT',
                     ),
-                  ),
-                  Text(
-                    restaurants.description,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                  const Divider(),
-                  const SizedBox(
-                    height: 16,
-                  ),
-                  const Text(
-                    'Menu : ',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    Tab(
+                      text: 'Review',
                     ),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  const Text(
-                    'Foods',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(
-                    height: 50,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: restaurants.menus.foods.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          color: accentColor,
-                          child: SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.5,
-                            child: Center(
-                              child: Text(
-                                restaurants.menus.foods[index].name,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                ),
+                  ],
+                  labelColor: Colors.white,
+                  indicatorColor: accentColor,
+                  indicatorPadding: const EdgeInsets.all(4),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                Consumer<RestaurantDetailProvider>(
+                    builder: (context, provider, __) {
+                  if (provider.state == ResultState.loading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (provider.state == ResultState.hasData) {
+                    return Expanded(
+                      child: TabBarView(
+                        controller: tabController,
+                        children: [
+                          Column(
+                            children: [
+                              DetailRestaurant(
+                                restaurant: provider.result.restaurant,
+                                provider: provider,
                               ),
-                            ),
+                            ],
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  const Text(
-                    'Drinks',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white),
-                  ),
-                  SizedBox(
-                      height: 50,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: restaurants.menus.drinks.length,
-                        itemBuilder: (context, index) {
-                          return Card(
-                            color: accentColor,
-                            child: SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.4,
-                              child: Center(
-                                child: Text(
-                                  restaurants.menus.drinks[index].name,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      )),
-                ],
-              ),
+                          ReviewWidget(
+                            restaurant: provider.result.restaurant,
+                            provider: provider,
+                          ),
+                        ],
+                      ),
+                    );
+                  } else if (provider.state == ResultState.error) {
+                    return TextMessage(
+                        message: 'Error ==> Tidak ada internet',
+                        onPressed: () {
+                          provider.fetchRestaurantDetail(widget.restaurant.id);
+                        });
+                  } else if (provider.state == ResultState.noData) {
+                    return TextMessage(
+                        message: provider.message,
+                        onPressed: () {
+                          provider.fetchRestaurantDetail(widget.restaurant.id);
+                        });
+                  } else {
+                    return const SizedBox();
+                  }
+                }),
+              ],
             ),
-            const SizedBox(
-              height: 8,
-            ),
-          ],
+          ),
         ),
       ),
     );
